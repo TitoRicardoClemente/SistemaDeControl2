@@ -22,7 +22,7 @@ corriente_L=xlsread('Curvas_Medidas_RLC_2024.xls','Hoja1','B:B');
 tension_C=xlsread('Curvas_Medidas_RLC_2024.xls','Hoja1','C:C');
 escalon_d=xlsread('Curvas_Medidas_RLC_2024.xls','Hoja1','D:D');
 figure(1);
-plot(tiempo_d,tension_C,'blue'); hold on
+plot(tiempo_d,corriente_L,'red'); hold on
 title('Curvas Datos Tensión de Capacitor - Original');
 xlabel('Tiempo [segundos]');
 ylabel('Tensión [Volts]');
@@ -37,7 +37,7 @@ ylabel('Tensión [Volts]');
 % ciclo, porque es el que posee condiciones iniciales nulas, respo
 
 % Para la Tension en el Capacitor y Corriente del inductor
-[tiempo_S,tension_S,entrada]=CurvaCondicionesInicialesNulas(tiempo_d,tension_C,escalon_d,length(tiempo_d));
+[tiempo_S,corriente_S,entrada]=CurvaCondicionesInicialesNulas(tiempo_d,corriente_L,escalon_d,length(tiempo_d));
 
 
 % Aplico Metodo de Chen
@@ -45,24 +45,24 @@ ylabel('Tensión [Volts]');
 %Elijo 3 puntos equidistantes (en tiempo) en la grafica de la respuesta al
 %escalon del voltaje del capacitor (Tercera columna de excel):
 % identifico tres puntos
-t_inicial=1.3e-3;
+t_inicial=0.1e-3;
 [~,punto]=min(abs(t_inicial-tiempo_S));
-t_t1=tiempo_S(punto); y1_v = tension_S(punto);
+t_t1=tiempo_S(punto); y1_v = corriente_S(punto);
 [~,punto]=min(abs((t_inicial*2)-tiempo_S)); 
-t_t2=tiempo_S(punto); y2_v = tension_S(punto);
+t_t2=tiempo_S(punto); y2_v = corriente_S(punto);
 [~,punto]=min(abs((t_inicial*3)-tiempo_S)); 
-t_t3=tiempo_S(punto); y3_v = tension_S(punto);
+t_t3=tiempo_S(punto); y3_v = corriente_S(punto);
 
 %Ademas, tambien debo elegir un cuarto punto para normalizar la ganancia:
 [~,punto]=min(abs(tiempo_S(end)-tiempo_S));
-t_t4 = tiempo_S(punto);        y4_v = tension_S(punto);
+t_t4 = tiempo_S(punto);        y4_v = corriente_S(punto);
 
 figure(2)
-plot(tiempo_S,tension_S,'blue');hold on
+plot(tiempo_S,corriente_S,'blue');hold on
 plot([t_t1 t_t2 t_t3 t_t4],[y1_v y2_v y3_v y4_v],'*');hold on;
-title('Curvas Datos Tensión de Capacitor - Pulso');
+title('Curvas Datos Corriente - Pulso');
 xlabel('Tiempo [segundos]');
-ylabel('Tensión [Volts]');
+ylabel('Corriente [Amper]');
 
 % Siendo un sistema de segundo Orden, para identificarlo, debo de
 % normalizar la entrada del sistema y ademas la salida correspondiente a la
@@ -92,24 +92,26 @@ T_2=-t_t1/log(alfa2);
 T_3=beta*(T_1-T_2)+T_1; 
 
 % Sistema Aproximado Final:
-G_s=tf(K*[T_3 1],conv([T_2 1],[T_1 1]));
+G_s=tf(K*[T_3 1],conv([T_2 1],[T_1 1]))
 G_s=zpk(G_s)
 
-[G_sS , t_S] = lsim(G_s , tension_C , tiempo_d);
+%[G_sS , t_S] = lsim(G_s , corriente_L , tiempo_d);
 
 % Sistema Aproximado.
 figure(3)
-plot(tiempo_d ,tension_C , 'r' ); title('Voltaje en el capacitor, V_c'); grid on; hold on;
-plot(t_S, G_sS, 'k') ; title('Función G_s obtenida por CHEN vs V_c original');
+%plot(tiempo_d ,corriente_L , 'b' ); title('Voltaje en el capacitor, V_t'); grid on; hold on;
+plot(tiempo_S, corriente_S,'k') ;hold on;
+plot(tiempo_S, G_s,'r') ;hold on;
+%plot(t_S, G_sS, 'k') ; title('G_v obtenida con el metodo de CHEN vs tensiones de tabla');
 %title('Curvas Medidas RLC / Curva Aproximada')
 xlabel('Tiempo [segundos]')
 ylabel('Amplitud Tensión en Capacitor')
 
 
-function [X,Y,Z]=CurvaCondicionesInicialesNulas(t,Vc,Ve,iteracion)
+function [X,Y,Z]=CurvaCondicionesInicialesNulas(t,iL,Ve,iteracion)
     t_aux=[];
-    vc_aux=[];
     ve_aux=[];
+    il_aux=[];
     j=1;
     for i=1:1:iteracion
       if Ve(i)~=0
@@ -118,8 +120,8 @@ function [X,Y,Z]=CurvaCondicionesInicialesNulas(t,Vc,Ve,iteracion)
               t_inic=t(i);% valor inicial
               end
               t_aux(j)=t(i)-t_inic;
-              vc_aux(j)=Vc(i);
               ve_aux(j)=Ve(i);
+              il_aux(j)=iL(i);
               j=j+1;
           else
               break
@@ -127,7 +129,7 @@ function [X,Y,Z]=CurvaCondicionesInicialesNulas(t,Vc,Ve,iteracion)
       end
     end
 X=t_aux;
-Y=vc_aux;
+Y=il_aux;
 Z=ve_aux;
 end
 

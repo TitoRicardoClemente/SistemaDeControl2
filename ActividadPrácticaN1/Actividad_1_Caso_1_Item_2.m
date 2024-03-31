@@ -95,11 +95,10 @@ T_3=beta*(T_1-T_2)+T_1;
 G_s=tf(K*[T_3 1],conv([T_2 1],[T_1 1]));
 G_s=zpk(G_s)
 
-[G_sS , t_S] = lsim(G_s , tension_C , tiempo_d);
+[G_sS , t_S] = lsim(G_s , escalon_d , tiempo_d);
 
 % Sistema Aproximado.
-figure(3)
-plot(tiempo_d ,tension_C , 'r' ); title('Voltaje en el capacitor, V_c'); grid on; hold on;
+figure(1)
 plot(t_S, G_sS, 'k') ; title('Función G_s obtenida por CHEN vs V_c original');
 %title('Curvas Medidas RLC / Curva Aproximada')
 xlabel('Tiempo [segundos]')

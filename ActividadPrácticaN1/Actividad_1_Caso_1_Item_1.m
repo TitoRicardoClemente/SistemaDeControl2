@@ -99,7 +99,6 @@ subplot(3,1,2)
 plot(t,vc,'r','LineWidth', 2);title('x_1 = V_C_t');xlabel('segundos [sec]');ylabel('Voltios')
 subplot(3,1,3)
 plot(t,u,'m','LineWidth', 2);title('Entrada U_t, V_e');xlabel('segundos [sec]');ylabel('Voltios')
-
 xlabel('Tiempo [s]');
 
 % La gráfica muestra una tensión de carga en el capacitor, bastante rápida 

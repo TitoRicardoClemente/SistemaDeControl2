@@ -69,15 +69,15 @@ ylabel('Corriente [Amper]');
 % tension del Capacitor.
 
 % Defino el Entrada Escalón del Sistema
-amplitud_escalon=entrada(end)/12; % normalizo el arreglo para que sea una entrada escalón
+amplitud_escalon=entrada(end); 
 
 % Conciderando la salida como el último valor de la Tensión en C:
 % tomo el ultimo valor del escalon unitario:
 
 K=y4_v/amplitud_escalon;
-k1=(1/amplitud_escalon)*y1_v/K-1;
-k2=(1/amplitud_escalon)*y2_v/K-1;
-k3=(1/amplitud_escalon)*y3_v/K-1;
+k1=(1/amplitud_escalon)*(y1_v/K)-1;
+k2=(1/amplitud_escalon)*(y2_v/K)-1;
+k3=(1/amplitud_escalon)*(y3_v/K)-1;
 
 % Ecuaciones desarrolladas bajo el supesto T1<T2 y alfa1<alfa2
 be=4*k1^3*k3-3*k1^2*k2^2-4*k2^3+k3^2+6*k1*k2*k3; 
@@ -96,21 +96,24 @@ T_3=beta*(T_1-T_2)+T_1;
 % Sistema Aproximado Final:
 G_s=tf(K*[T_3 1],conv([T_2 1],[T_1 1]))
 
-
-[G_sS , t_S] = lsim(G_s , escalon_d/12 , tiempo_d);
+[G_sS , t_S] = lsim(G_s , escalon_d , tiempo_d);
 
 % Sistema Aproximado.
 figure(1)
-plot(t_S, G_sS, 'k') ; title('Función G_s obtenida por CHEN vs I_L original');
+plot(t_S, G_sS, 'k') ;
 title('Curvas Medidas RLC / Curva Aproximada')
 xlabel('Tiempo [segundos]')
 ylabel('Amplitud Corriente en el Inductor')
 
 G_s=zpk(G_s)
 
-L=1/(G_s.K)
-C=1/(G_s.P{1,1}(1,1))*(G_s.P{1,1}(2,1))*L
-R=-L*(G_s.P{1,1}(1,1)+G_s.P{1,1}(2,1))
+Ko=G_s.K;           % ganancia de G_s
+p1=G_s.P{1,1}(1,1); % polo 1 de G_s
+p2=G_s.P{1,1}(2,1); % polo 2 de G_s
+
+L=1/Ko;          % 98,3 [mHy]
+Ce=1/(p1*p2*L);  % 10  [uF]
+R=-L*(p1+p2);    % 269 [Ohms]
 
 function [X,Y,Z]=CurvaCondicionesInicialesNulas(t,iL,Ve,iteracion)
     t_aux=[];
@@ -137,3 +140,24 @@ Y=il_aux;
 Z=ve_aux;
 end
 
+function [U,T,I]=Entrada(t,Ve,I,iteracion)
+    t_aux=[];
+    ve_aux=[];
+    i_aux=[];
+    j=1;
+    t_inic=0;
+    for i=1:1:iteracion
+      if t(i)>=0.05  
+          if j==1
+          t_inic=t(i);% valor inicial
+          end
+          t_aux(j)=t(i)-t_inic;
+          ve_aux(j)=Ve(i);
+          i_aux(j)=I(i);
+          j=j+1;
+      end
+    end
+I=i_aux;
+T=t_aux;
+U=ve_aux;
+end

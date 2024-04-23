@@ -71,7 +71,7 @@ ylabel('Corriente [Amper]');
 % Defino el Entrada Escalón del Sistema
 amplitud_escalon=entrada(end); 
 
-% Conciderando la salida como el último valor de la Tensión en C:
+% Conciderando la salida como el último valor de la Corriente en inductor:
 % tomo el ultimo valor del escalon unitario:
 
 K=y4_v/amplitud_escalon;
